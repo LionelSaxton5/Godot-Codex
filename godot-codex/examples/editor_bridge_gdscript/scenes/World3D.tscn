@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://gaxtl4psxb2a"]
+
+[ext_resource type="Script" uid="uid://mnthye347821" path="res://scripts/Written3D.gd" id="1_iise8"]
+[ext_resource type="Material" uid="uid://c68no0khl5388" path="res://resources/material.tres" id="2_tjl1m"]
+[ext_resource type="BoxMesh" uid="uid://i8770x5p64jm" path="res://resources/box.tres" id="3_unhk6"]
+
+[node name="World3D" type="Node3D" unique_id=1040091313]
+
+[node name="Hero" type="Node3D" parent="." unique_id=891870895]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 48, -4)
+script = ExtResource("1_iise8")
+
+[node name="Group" type="Node3D" parent="." unique_id=578491901]
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=760547293]
+material_override = ExtResource("2_tjl1m")
+mesh = ExtResource("3_unhk6")
+
+[node name="Camera" type="Camera3D" parent="." unique_id=1361934792]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 6)
+current = true
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1451327601]

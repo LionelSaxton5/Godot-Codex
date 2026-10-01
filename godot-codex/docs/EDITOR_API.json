@@ -1,0 +1,1524 @@
+{
+  "title": "Godot-codex Editor API",
+  "plugin_version": "0.2.1",
+  "bridge_protocol_version": 1,
+  "mcp_protocol_versions": [
+    "2025-11-25",
+    "2025-06-18",
+    "2025-03-26"
+  ],
+  "mcp_protocol_note": "Pinned handshake dialect; does not implement the 2026 stateless draft. Each JSON-RPC message is one UTF-8 newline-delimited object. No Content-Length framing or HTTP listener.",
+  "specification_sources": [
+    "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
+    "https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle",
+    "https://modelcontextprotocol.io/specification/2025-11-25/server/tools"
+  ],
+  "project_selection": "--project explicit directory or GODOT_PROJECT_PATH; never current working directory or auto-discovery.",
+  "ipc": {
+    "directory": ".godot/ai_bridge",
+    "request": "requests/<32lowercasehex>.json",
+    "response": "responses/<same id>.json",
+    "status": "status.json",
+    "request_fields": [
+      "id",
+      "session_id",
+      "project_root",
+      "operation",
+      "arguments"
+    ],
+    "response_fields": [
+      "id",
+      "session_id",
+      "ok",
+      "result",
+      "error?"
+    ],
+    "heartbeat_field": "heartbeat_unix",
+    "heartbeat_units": "Unix seconds",
+    "session_id": "32 lowercase hex",
+    "revision": "Opaque string from editor scene snapshot, not a client-generated counter",
+    "request_max_bytes": 2097152,
+    "response_max_bytes": 4194304,
+    "script_max_utf8_bytes": 1048576,
+    "default_timeout_seconds": 10,
+    "stale_after_seconds": 10
+  },
+  "safety": [
+    "All node-target writes require exact scene path, opaque revision and node identity from fresh inspection.",
+    "Paths are project-local res://; traversal, symlinks, junctions and generated/internal paths are rejected.",
+    "The client removes only its own request/response files. It never purges queues.",
+    "Published mutation without a trustworthy response returns outcome_unknown; inspect state and never retry automatically.",
+    "No eval, arbitrary methods, shell execution, authentication tokens or public listeners.",
+    "Playing a scene executes trusted project code; tool descriptions require approval.",
+    "Script source writes do not build C# or attach the script. Existing files require overwrite=true plus expected_sha256."
+  ],
+  "tools": [
+    {
+      "name": "godot_status",
+      "operation": "status",
+      "description": "Get the running editor session, fresh scene guard, engine version and supported operations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_hierarchy",
+      "operation": "hierarchy",
+      "description": "Inspect the edited scene tree with exact node identities. Read-only; never runs project code.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "max_depth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 32
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_node_inspect",
+      "operation": "node_inspect",
+      "description": "Inspect one node's native properties, identity and persistent signal connections.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "node_path"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_scene_create",
+      "operation": "scene_create",
+      "description": "Create and open a new .tscn with a native root. Fails if the destination exists.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          },
+          "root_type": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "root_name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "path",
+          "root_type",
+          "root_name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_scene_open",
+      "operation": "scene_open",
+      "description": "Open an existing trusted project scene; current scene guards prevent acting on the wrong tab.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "path"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_scene_save",
+      "operation": "scene_save",
+      "description": "Save the edited scene after checking scene identity, revision and exact expected disk SHA-256.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "expected_disk_sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "scene.disk_sha256 from a fresh status, or empty only for an absent destination.",
+            "pattern": "^([0-9a-f]{64})?$"
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "expected_disk_sha256"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_node_create",
+      "operation": "node_create",
+      "description": "Create a native node under an identified parent, owned by the edited scene and undoable.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "parent_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_parent_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "parent_path",
+          "expected_parent_id",
+          "type",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_node_delete",
+      "operation": "node_delete",
+      "description": "Delete an identified non-root node through editor Undo/Redo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_node_duplicate",
+      "operation": "node_duplicate",
+      "description": "Duplicate an identified node with a new sibling name through editor Undo/Redo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_node_reparent",
+      "operation": "node_reparent",
+      "description": "Move an identified node under an identified new parent through editor Undo/Redo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "new_parent_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_new_parent_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "keep_global_transform": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "new_parent_path",
+          "expected_new_parent_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_node_rename",
+      "operation": "node_rename",
+      "description": "Rename an identified node through editor Undo/Redo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_property_set",
+      "operation": "property_set",
+      "description": "Set an allowlisted native editor property to a scalar or typed vector/color/NodePath. No custom setters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "property": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "Vector2"
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "Vector3"
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "Vector2i"
+                  },
+                  "x": {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                  },
+                  "y": {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "Vector3i"
+                  },
+                  "x": {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                  },
+                  "y": {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                  },
+                  "z": {
+                    "type": "integer",
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                  }
+                },
+                "required": [
+                  "type",
+                  "x",
+                  "y",
+                  "z"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "Color"
+                  },
+                  "r": {
+                    "type": "number"
+                  },
+                  "g": {
+                    "type": "number"
+                  },
+                  "b": {
+                    "type": "number"
+                  },
+                  "a": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "type",
+                  "r",
+                  "g",
+                  "b",
+                  "a"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "NodePath"
+                  },
+                  "value": {
+                    "type": "string",
+                    "maxLength": 4096,
+                    "description": "NodePath property relative to its target node. Empty clears it; parent segments are allowed only when addon resolution stays within the edited scene."
+                  }
+                },
+                "required": [
+                  "type",
+                  "value"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "property",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_signal_connect",
+      "operation": "signal_connect",
+      "description": "Add a persistent direct signal connection between identified nodes; target method must exist.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "signal": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "target_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_target_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "method": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "signal",
+          "target_path",
+          "expected_target_id",
+          "method"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_signal_disconnect",
+      "operation": "signal_disconnect",
+      "description": "Remove an existing persistent direct signal connection through editor Undo/Redo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "signal": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "target_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_target_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "method": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "signal",
+          "target_path",
+          "expected_target_id",
+          "method"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_script_attach",
+      "operation": "script_attach",
+      "description": "Attach an existing GDScript/C# script to an identified node. Tool scripts are rejected; C# needs a prior successful build.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "script_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "script_path"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_script_read",
+      "operation": "script_read",
+      "description": "Read bounded project-local .gd or .cs source as text without executing it; returns a SHA-256 for safe edits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_script_write",
+      "operation": "script_write",
+      "description": "Create/edit bounded .gd or .cs source. Existing files require overwrite=true and an exact expected_sha256. No @tool code, build or attachment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 1048576
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "expected_sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "path",
+          "source"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_resource_create",
+      "operation": "resource_create",
+      "description": "Create a new allowlisted native .tres resource with typed properties. Never overwrites or loads custom resource scripts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "maxLength": 4096
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "Vector2"
+                    },
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "Vector3"
+                    },
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    },
+                    "z": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "Vector2i"
+                    },
+                    "x": {
+                      "type": "integer",
+                      "minimum": -2147483648,
+                      "maximum": 2147483647
+                    },
+                    "y": {
+                      "type": "integer",
+                      "minimum": -2147483648,
+                      "maximum": 2147483647
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "Vector3i"
+                    },
+                    "x": {
+                      "type": "integer",
+                      "minimum": -2147483648,
+                      "maximum": 2147483647
+                    },
+                    "y": {
+                      "type": "integer",
+                      "minimum": -2147483648,
+                      "maximum": 2147483647
+                    },
+                    "z": {
+                      "type": "integer",
+                      "minimum": -2147483648,
+                      "maximum": 2147483647
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "x",
+                    "y",
+                    "z"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "Color"
+                    },
+                    "r": {
+                      "type": "number"
+                    },
+                    "g": {
+                      "type": "number"
+                    },
+                    "b": {
+                      "type": "number"
+                    },
+                    "a": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "r",
+                    "g",
+                    "b",
+                    "a"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "const": "NodePath"
+                    },
+                    "value": {
+                      "type": "string",
+                      "maxLength": 4096,
+                      "description": "NodePath property relative to its target node. Empty clears it; parent segments are allowed only when addon resolution stays within the edited scene."
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "maxProperties": 64
+          }
+        },
+        "required": [
+          "path",
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_resource_assign",
+      "operation": "resource_assign",
+      "description": "Assign an existing safe native project resource to an identified node's native resource property.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "node_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Root-relative node path, '.' for the scene root. No absolute paths or '..'.",
+            "minLength": 1
+          },
+          "expected_node_id": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Exact node_id from a fresh hierarchy or node_inspect result.",
+            "pattern": "^[0-9]+$",
+            "minLength": 1
+          },
+          "property": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "resource_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "node_path",
+          "expected_node_id",
+          "property",
+          "resource_path"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_editor_undo",
+      "operation": "editor_undo",
+      "description": "Undo the latest edited-scene change after exact scene/revision validation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_editor_redo",
+      "operation": "editor_redo",
+      "description": "Redo the latest edited-scene change after exact scene/revision validation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_play_current",
+      "operation": "play_current",
+      "description": "Run the edited scene using the editor. Executes trusted project code; obtain user approval first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "godot_play_main",
+      "operation": "play_main",
+      "description": "Run the project's configured main scene. Executes trusted project code; obtain user approval first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "godot_play_custom",
+      "operation": "play_custom",
+      "description": "Run an explicit project scene. Executes trusted project code; obtain user approval first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "expected_scene_path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Exact scene.path from a fresh status; empty for no/unsaved scene."
+          },
+          "expected_revision": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Opaque scene.revision from a fresh status. Never synthesize this value.",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Project-local res:// path; no traversal, symlinks, generated files or absolute paths.",
+            "minLength": 7
+          }
+        },
+        "required": [
+          "expected_scene_path",
+          "expected_revision",
+          "path"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "godot_stop",
+      "operation": "stop",
+      "description": "Stop the editor's running game; no external processes are killed.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "godot_diagnostics",
+      "operation": "diagnostics",
+      "description": "Get bounded addon operation/error diagnostics and editor state. This is not a complete debugger or C# build log.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "resource_suffixes": {
+    "scene_create": [
+      ".tscn"
+    ],
+    "scene_open": [
+      ".tscn"
+    ],
+    "play_custom": [
+      ".tscn"
+    ],
+    "script_read_write_attach": [
+      ".gd",
+      ".cs"
+    ],
+    "resource_create": [
+      ".tres"
+    ],
+    "resource_assign": [
+      ".tres",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".webp"
+    ]
+  },
+  "typed_values": {
+    "primitive": [
+      "null",
+      "boolean",
+      "number",
+      "string"
+    ],
+    "tagged": [
+      "Vector2",
+      "Vector3",
+      "Vector2i",
+      "Vector3i",
+      "Color",
+      "NodePath"
+    ],
+    "integer_vector_components": "Signed 32-bit integers",
+    "NodePath": "A property value is relative to its target node; empty clears it. Parent segments are allowed only when addon resolution stays within the edited scene root. Operation target node paths remain strictly root-relative and reject parent traversal."
+  }
+}

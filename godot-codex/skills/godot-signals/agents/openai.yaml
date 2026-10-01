@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Signals"
+  short_description: "Wire signals with safe C# lifetimes"
+  default_prompt: "Use $godot-signals to diagnose duplicate callbacks and make these Godot signal connections lifecycle-safe."

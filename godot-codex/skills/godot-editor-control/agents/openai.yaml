@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Live Editor Control"
+  short_description: "Edit live 2D and 3D scenes with guarded MCP tools"
+  default_prompt: "Use $godot-editor-control to inspect the running editor and make the requested scene changes."

@@ -1,0 +1,36 @@
+{
+  "name": "godot-codex",
+  "version": "0.2.1",
+  "description": "Live Godot editor control through a local MCP bridge, with native GDScript and C# development skills.",
+  "author": {
+    "name": "Godot Skills Local Project"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Godot-codex",
+    "shortDescription": "Control Godot 2D/3D scenes from your AI tools.",
+    "longDescription": "Local stdio MCP plus a project-local Godot EditorPlugin for guarded live scene/node/property/signal/script/resource operations. Includes native GDScript and C# skills, tests and fixtures. Godot must be running with the addon enabled. Independent project, not an official Godot product.",
+    "developerName": "Godot Skills Local Project",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": [
+      "Create and save a 3D scene in my running Godot editor.",
+      "Inspect this scene and fix its node and signal setup.",
+      "Build a 2D scene using my existing C# scripts."
+    ],
+    "brandColor": "#478CBF",
+    "screenshots": [
+      "./assets/live-editor-3d.png"
+    ]
+  },
+  "license": "MIT",
+  "keywords": [
+    "godot",
+    "godot4",
+    "csharp",
+    "2d",
+    "signals",
+    "gamedev"
+  ],
+  "mcpServers": "./.mcp.json"
+}

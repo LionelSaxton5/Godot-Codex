@@ -1,0 +1,14 @@
+config_version=5
+[application]
+config/name="Editor Bridge csharp Example"
+run/main_scene="res://scenes/World3D.tscn"
+[editor]
+run/main_run_args=""
+[rendering]
+renderer/rendering_method="gl_compatibility"
+
+[dotnet]
+project/assembly_name="BridgeTest"
+
+[editor_plugins]
+enabled=PackedStringArray("res://addons/ai_editor_bridge/plugin.cfg")

@@ -1,0 +1,27 @@
+; Native C# companion to examples/native_lab. Use Godot .NET 4.6.3.
+config_version=5
+
+[application]
+config/name="Godot C# Skills Lab"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.6", "C#", "GL Compatibility")
+
+[autoload]
+Session="*res://scripts/Session.cs"
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="integer"
+
+[dotnet]
+project/assembly_name="CSharpLab"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Pixel Art and Tiles"
+  short_description: "Tune pixel rendering and TileMapLayer workflows"
+  default_prompt: "Use $godot-2d-pixel-tilemap to inspect pixel scaling and tile placement."

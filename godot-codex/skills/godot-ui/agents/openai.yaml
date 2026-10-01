@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot UI"
+  short_description: "Build responsive menus with native Godot UI"
+  default_prompt: "Use $godot-ui to repair this menu layout, focus navigation, and GUI input behavior."

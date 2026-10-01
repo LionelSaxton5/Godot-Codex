@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://chhq7lsy5cwfv"]
+
+[ext_resource type="Script" uid="uid://cdvwuddem64m1" path="res://scripts/BridgeActor2D.cs" id="1_blhhu"]
+[ext_resource type="Shape2D" uid="uid://dlrhb22pu4hqv" path="res://resources/collision2d.tres" id="2_1164t"]
+
+[node name="World2D" type="Node2D" unique_id=372564890]
+
+[node name="Hero" type="Node2D" parent="." unique_id=1795063174]
+position = Vector2(32, 48)
+script = ExtResource("1_blhhu")
+
+[node name="Group" type="Node2D" parent="." unique_id=491822598]
+
+[node name="HideButton" type="Button" parent="." unique_id=768186842]
+focus_neighbor_right = NodePath("../RefButton")
+text = "Hide hero"
+
+[node name="RefButton" type="Button" parent="." unique_id=915648647]
+
+[node name="Collider" type="CollisionShape2D" parent="." unique_id=159810904]
+shape = ExtResource("2_1164t")
+
+[connection signal="pressed" from="HideButton" to="Hero" method="OnPressed"]

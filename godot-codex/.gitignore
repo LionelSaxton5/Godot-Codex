@@ -1,0 +1,7 @@
+.godot/
+.mono/
+__pycache__/
+*.pyc
+bin/
+obj/
+*.zip

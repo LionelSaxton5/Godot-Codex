@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "godot-editor": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "scripts/godot_mcp_server.py"
+      ],
+      "cwd": ".",
+      "env_vars": [
+        "GODOT_PROJECT_PATH"
+      ],
+      "startup_timeout_sec": 20
+    }
+  }
+}

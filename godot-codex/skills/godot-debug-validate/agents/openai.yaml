@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Debug and Validate"
+  short_description: "Reproduce failures and verify Godot changes"
+  default_prompt: "Use $godot-debug-validate to diagnose this error and prove the fix."

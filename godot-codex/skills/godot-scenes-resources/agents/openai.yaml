@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Scenes and Resources"
+  short_description: "Compose scenes and control Resource sharing"
+  default_prompt: "Use $godot-scenes-resources to fix scene composition and per-instance Resource state in this Godot project."

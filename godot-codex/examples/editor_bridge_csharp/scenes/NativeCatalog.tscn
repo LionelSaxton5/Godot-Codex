@@ -1,0 +1,130 @@
+[gd_scene format=3 uid="uid://c3y82io5psk5r"]
+
+[node name="NativeCatalog" type="Node" unique_id=442573429]
+
+[node name="TestNode" type="Node" parent="." unique_id=1496268890]
+
+[node name="TestNode2D" type="Node2D" parent="." unique_id=1408689306]
+
+[node name="TestNode3D" type="Node3D" parent="." unique_id=1961731958]
+
+[node name="TestControl" type="Control" parent="." unique_id=1670386714]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="TestCanvasLayer" type="CanvasLayer" parent="." unique_id=595442312]
+
+[node name="TestButton" type="Button" parent="." unique_id=1158263001]
+
+[node name="TestLabel" type="Label" parent="." unique_id=596427509]
+
+[node name="TestRichTextLabel" type="RichTextLabel" parent="." unique_id=984401023]
+
+[node name="TestTextureRect" type="TextureRect" parent="." unique_id=411021202]
+
+[node name="TestPanel" type="Panel" parent="." unique_id=1409601692]
+
+[node name="TestPanelContainer" type="PanelContainer" parent="." unique_id=311920010]
+
+[node name="TestMarginContainer" type="MarginContainer" parent="." unique_id=608518758]
+
+[node name="TestHBoxContainer" type="HBoxContainer" parent="." unique_id=2078395545]
+
+[node name="TestVBoxContainer" type="VBoxContainer" parent="." unique_id=1219161816]
+
+[node name="TestGridContainer" type="GridContainer" parent="." unique_id=247255660]
+
+[node name="TestCenterContainer" type="CenterContainer" parent="." unique_id=1162473355]
+
+[node name="TestScrollContainer" type="ScrollContainer" parent="." unique_id=1917015440]
+
+[node name="TestLineEdit" type="LineEdit" parent="." unique_id=941790897]
+
+[node name="TestTextEdit" type="TextEdit" parent="." unique_id=1619887194]
+
+[node name="TestCheckBox" type="CheckBox" parent="." unique_id=517320238]
+
+[node name="TestCheckButton" type="CheckButton" parent="." unique_id=160379311]
+
+[node name="TestOptionButton" type="OptionButton" parent="." unique_id=390381518]
+
+[node name="TestProgressBar" type="ProgressBar" parent="." unique_id=481221179]
+
+[node name="TestHSlider" type="HSlider" parent="." unique_id=1926999056]
+
+[node name="TestVSlider" type="VSlider" parent="." unique_id=1509250246]
+
+[node name="TestColorRect" type="ColorRect" parent="." unique_id=177814012]
+
+[node name="TestSprite2D" type="Sprite2D" parent="." unique_id=1528551822]
+hframes = 2
+vframes = 2
+frame = 3
+
+[node name="TestAnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=598955507]
+
+[node name="TestCamera2D" type="Camera2D" parent="." unique_id=1717914853]
+
+[node name="TestTileMapLayer" type="TileMapLayer" parent="." unique_id=1863442196]
+
+[node name="TestCharacterBody2D" type="CharacterBody2D" parent="." unique_id=829542147]
+
+[node name="TestStaticBody2D" type="StaticBody2D" parent="." unique_id=941840336]
+
+[node name="TestRigidBody2D" type="RigidBody2D" parent="." unique_id=1752473721]
+
+[node name="TestAnimatableBody2D" type="AnimatableBody2D" parent="." unique_id=592606322]
+
+[node name="TestCollisionShape2D" type="CollisionShape2D" parent="." unique_id=1439544056]
+
+[node name="TestArea2D" type="Area2D" parent="." unique_id=1054451932]
+
+[node name="TestRayCast2D" type="RayCast2D" parent="." unique_id=388532674]
+
+[node name="TestMarker2D" type="Marker2D" parent="." unique_id=671092204]
+
+[node name="TestPolygon2D" type="Polygon2D" parent="." unique_id=162935004]
+
+[node name="TestLine2D" type="Line2D" parent="." unique_id=1176798356]
+
+[node name="TestPointLight2D" type="PointLight2D" parent="." unique_id=399191204]
+
+[node name="TestDirectionalLight2D" type="DirectionalLight2D" parent="." unique_id=294105987]
+
+[node name="TestMeshInstance3D" type="MeshInstance3D" parent="." unique_id=1640726160]
+
+[node name="TestCamera3D" type="Camera3D" parent="." unique_id=1640918821]
+
+[node name="TestDirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1420981675]
+
+[node name="TestOmniLight3D" type="OmniLight3D" parent="." unique_id=2097774325]
+
+[node name="TestSpotLight3D" type="SpotLight3D" parent="." unique_id=1285270514]
+
+[node name="TestStaticBody3D" type="StaticBody3D" parent="." unique_id=1648862307]
+
+[node name="TestCharacterBody3D" type="CharacterBody3D" parent="." unique_id=696857245]
+
+[node name="TestRigidBody3D" type="RigidBody3D" parent="." unique_id=302025951]
+
+[node name="TestAnimatableBody3D" type="AnimatableBody3D" parent="." unique_id=1841387556]
+
+[node name="TestCollisionShape3D" type="CollisionShape3D" parent="." unique_id=1643900038]
+
+[node name="TestArea3D" type="Area3D" parent="." unique_id=773109192]
+
+[node name="TestRayCast3D" type="RayCast3D" parent="." unique_id=428951725]
+
+[node name="TestMarker3D" type="Marker3D" parent="." unique_id=2121450537]
+
+[node name="TestWorldEnvironment" type="WorldEnvironment" parent="." unique_id=1523355279]
+
+[node name="TestAudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=43448522]
+
+[node name="TestAudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1414380674]
+
+[node name="TestAudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=1547417227]
+
+[node name="TestTimer" type="Timer" parent="." unique_id=832855242]
+
+[node name="TestAnimationPlayer" type="AnimationPlayer" parent="." unique_id=1608019192]

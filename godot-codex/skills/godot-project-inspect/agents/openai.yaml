@@ -1,0 +1,4 @@
+interface:
+  display_name: "Godot Project Inspector"
+  short_description: "Map scenes, scripts, Resources and Autoloads"
+  default_prompt: "Use $godot-project-inspect to map my project without running its code."
