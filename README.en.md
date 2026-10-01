@@ -2,7 +2,7 @@
 
 **Let Codex AI control your running Godot editor through natural language.**
 
-[中文](README.md) · [Download v0.2.1](downloads/godot-codex-0.2.1.zip) · [SHA-256](downloads/godot-codex-0.2.1.zip.sha256) · [Plugin documentation](godot-codex/README.md)
+[简体中文](README.zh-CN.md) · [Download v0.2.1](downloads/godot-codex-0.2.1.zip) · [SHA-256](downloads/godot-codex-0.2.1.zip.sha256) · [Plugin documentation](godot-codex/README.md)
 
 Godot-Codex connects an AI client to a real Godot EditorPlugin through a local stdio MCP bridge. Requests reach Godot's editor APIs to inspect and edit the open project. It includes seven Godot development skills and 26 editor tools for GDScript/C# and 2D/3D workflows.
 

@@ -1,43 +1,33 @@
 # Godot-Codex
 
-**用自然语言让 Codex AI 操控 Godot 编辑器。**
+**Let Codex AI control your running Godot editor through natural language.**
 
-[English](README.en.md) · [下载安装包](downloads/godot-codex-0.2.1.zip) · [SHA-256 校验](downloads/godot-codex-0.2.1.zip.sha256) · [详细安装说明](godot-codex/docs/EDITOR_SETUP.zh-CN.md) · [功能与限制](godot-codex/docs/EDITOR_CAPABILITIES.md)
+[简体中文](README.zh-CN.md) · [Download v0.2.1](downloads/godot-codex-0.2.1.zip) · [SHA-256](downloads/godot-codex-0.2.1.zip.sha256) · [Plugin documentation](godot-codex/README.md)
 
-Godot-Codex 把 Codex 与你本机正在运行的 Godot 编辑器连接起来。你描述想做什么，AI 通过本地 MCP 桥接调用 Godot 编辑器 API，查看和修改真实场景。
+Godot-Codex connects an AI client to a real Godot EditorPlugin through a local stdio MCP bridge. Requests reach Godot's editor APIs to inspect and edit the open project. It includes seven Godot development skills and 26 editor tools for GDScript/C# and 2D/3D workflows.
 
-当前发布版本为 **0.2.1（Windows 验证版）**。这是独立的 MIT 开源项目，与 Godot 和 OpenAI 没有官方隶属关系。
+## Features
 
-## 能做什么
+- Inspect scenes, node hierarchies, built-in properties and signal connections.
+- Create, open and save scenes; create, delete, duplicate, rename and reparent nodes.
+- Change properties; create and assign native materials, meshes and shapes.
+- Read, write and attach scripts; connect persistent signals to supported script methods.
+- Use editor undo/redo and play/stop operations.
 
-- 查看当前场景、节点层级、可编辑属性和信号连接。
-- 创建、打开、保存场景；创建、删除、复制、重命名和调整节点层级。
-- 修改属性，创建并分配原生材质、网格和碰撞形状等资源。
-- 读取、写入、附加 GDScript 或 C# 脚本，连接持久化信号。
-- 调用场景撤销、重做，以及编辑器运行、停止功能。
-- 提供 7 项 Godot 开发技能，覆盖编辑器控制、项目检查、场景与资源、信号、UI、2D 像素与地图、调试验证。
+![A real Godot scene created through the local MCP bridge](godot-codex/assets/live-editor-3d.png)
 
-共有 **26 项编辑器工具**。完整参数见 [工具定义](godot-codex/docs/EDITOR_API.json)。
+## Requirements
 
-![通过本地 MCP 桥接创建并在 Godot 中验证的 3D 场景](godot-codex/assets/live-editor-3d.png)
+- Python 3.10 or newer; the Python tools use only the standard library.
+- Godot 4.6.3 is the verified baseline. Godot 4.4.1 lacks required editor APIs.
+- C# projects also require Godot .NET and a compatible .NET SDK, with a successful project build before script attachment.
+- Codex or another stdio MCP client, with access to the same local project directory as Godot.
 
-## 环境要求
+Keep Godot open and the project addon enabled. The bridge does not require an API key, network listener or cloud backend; AI client accounts and charges depend on the service you use.
 
-- Python 3.10 或更新版本；插件 Python 部分只使用标准库。
-- Godot **4.6.3** 是当前已验证版本。Godot 4.4.1 缺少所需编辑器 API，无法使用本版本桥接。
-- C# 项目需要 Godot .NET 版和匹配的 .NET SDK。
-- Codex 或其他支持 stdio MCP 的 AI 客户端。
-- AI/MCP 和 Godot 必须能够访问同一台机器上的同一个项目目录。
+## Windows quick start
 
-桥接本身无需 API Key、云服务器或付费后端；AI 客户端的账号和费用由对应服务决定。使用时必须保持 Godot 编辑器打开，并启用项目内的 addon。
-
-## Windows 快速开始
-
-下载并解压上面的安装包，进入其中的 `godot-codex` 文件夹。下列命令中的 Python、插件和项目路径请替换成自己的实际路径。
-
-### 1. 安装 Codex 插件
-
-在 PowerShell 中运行：
+Extract the download and open PowerShell in the `godot-codex` folder. Replace the example paths with your actual Python executable and trusted Godot project.
 
 ```powershell
 $Python = 'C:\Python313\python.exe'
@@ -45,51 +35,36 @@ $Python = 'C:\Python313\python.exe'
 & $Python scripts/install_local.py --home $env:USERPROFILE --apply
 ```
 
-第一条命令预览安装计划，第二条执行安装。之后运行安装器输出的 `next_command`，完成 Codex 插件登记。安装器会写入当前 Python 的真实路径，避免 Windows 上没有 `python3` 的问题。
+The first command previews the installation; the second prepares it. Run the installer's printed `next_command` to register the Codex plugin. Existing installations are never overwritten by this installer.
 
-### 2. 为 Godot 项目安装编辑器桥接
-
-先关闭目标项目的 Godot 编辑器：
+Close the target project's editor before copying and enabling the addon:
 
 ```powershell
 & $Python scripts/setup_editor_bridge.py 'D:\MyGodotProject' --enable
 & $Python scripts/setup_editor_bridge.py 'D:\MyGodotProject' --apply --enable
-```
-
-第一条预览，第二条复制并启用 addon；修改项目配置前会保存备份。
-
-### 3. 配置项目路径并连接
-
-为启动 Codex 的进程配置 `GODOT_PROJECT_PATH`，然后重新打开 Godot 项目并开启新的 Codex 对话：
-
-```powershell
 $env:GODOT_PROJECT_PATH = 'D:\MyGodotProject'
 ```
 
-此变量只作用于当前 PowerShell 及其启动的子进程。从开始菜单启动的客户端通常不会继承它；详细配置方式见 [安装说明](godot-codex/docs/EDITOR_SETUP.zh-CN.md)。也可按该说明使用独立 MCP 登记方式，选择一种连接方式即可。
+Reopen the Godot project, start your AI client with the project path configured, and ask it to call `godot_status` before editing. The environment variable above applies to this PowerShell and processes launched from it. Clients launched from the Start menu need their own explicit MCP environment configuration. See the [setup guide](godot-codex/docs/EDITOR_SETUP.zh-CN.md) and [MCP configuration](godot-codex/.mcp.json). Use either the plugin's MCP connection or a separately registered connection.
 
-先让 AI 调用 `godot_status`，确认连接的是正确项目，再开始编辑。
+## Example prompts
 
-## 可以这样说
+> Inspect the current scene hierarchy and its button signal connections.
 
-> 查看当前场景的节点层级，告诉我有哪些按钮和信号连接。
+> Create a 3D scene with a box mesh, material, light and camera in my running Godot editor. Save and run it.
 
-> 在当前 Godot 编辑器里创建一个 3D 场景，加入方块、材质、灯光和相机，保存并运行。
+> Move this Node2D to the coordinates I provided, then undo the change and verify restoration.
 
-> 把指定 Node2D 的位置改到我给定的坐标，然后撤销一次，确认可以恢复。
+## Verification and scope
 
-> 为这个节点附加 C# 脚本，保持项目原本的语言；检查构建通过后再运行。
+The public package contains verification summaries and examples. It excludes raw local logs and internal debug transcripts. Existing Windows 0.2.1 acceptance covered all 26 tools through real Godot editors and Codex app-server, including GDScript/C#, 2D/3D, save/reopen, undo/redo and failure handling. Naming and documentation changes do not imply that full editor acceptance was repeated.
 
-## 验证与边界
+This release does not automate every Godot menu or feature. macOS, a full Linux retest of 0.2.1 and other engine versions remain unverified. Use the bridge only in trusted projects you authorize AI to edit. Scene changes use revision and node identity guards; the bridge is not a sandbox for hostile project code.
 
-公开包包含验证摘要和 GDScript/C# 的 2D/3D 示例；原始本机日志、内部调试转录和账号信息不随包发布。Windows 0.2.1 的既有验收覆盖 Python 回归、真实 Godot 编辑器、stdio MCP 与 Codex app-server。公开包的名称与文档整理不代表重新运行了全部编辑器验收。
+[Capabilities and limits](godot-codex/docs/EDITOR_CAPABILITIES.md) · [Tool schemas](godot-codex/docs/EDITOR_API.json) · [Verification](godot-codex/docs/VERIFICATION.md)
 
-[Windows 验证报告](godot-codex/docs/WINDOWS_VERIFICATION.zh-CN.md) · [验证记录](godot-codex/docs/VERIFICATION.md)
+## Source and license
 
-本版本覆盖已实现并验证的编辑器操作，不能操控 Godot 的所有菜单和功能。macOS、0.2.1 的 Linux 重测及其他 Godot 版本尚未验证。请只在自己信任并授权 AI 修改的项目中使用；桥接不是隔离恶意项目代码的沙箱。
+[Source](godot-codex/) includes the MCP service, Godot addon, installers, seven skills, tests and examples. [MIT License](LICENSE). This independent project is not an official Godot or OpenAI product.
 
-## 源码与许可证
-
-源码位于 [godot-codex](godot-codex/)，包含安装器、MCP 服务、Godot addon、技能、测试、示例和原始文档。仓库名称为 Godot-Codex，公开插件包名为 `godot-codex`。
-
-[MIT License](LICENSE)。欢迎通过 [Issues](https://github.com/LionelSaxton5/Godot-Codex/issues) 反馈问题；请附上 Godot 版本、操作系统和复现步骤，并去掉日志中的个人路径和敏感信息。
+Report issues with your operating system, Godot version and reproduction steps. Remove personal paths and sensitive information from logs before sharing them.
